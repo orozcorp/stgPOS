@@ -1,9 +1,7 @@
-const onlineURI = process.env.MONGODB_URI;
-const offlineURI = process.env.OFFLINE_DB;
-
 export const sync = {
   Mutation: {
     syncOffline: async (_, args, { dbOnline, dbOffline }) => {
+      console.log("syncOffline");
       try {
         const lastSync = await dbOffline
           .collection("lastSync")
@@ -16,49 +14,70 @@ export const sync = {
           new Date(lastSyncDate).getTime() / 1000
         );
 
-        const collectionsToSync = [
-          { name: "Colores", field: "fechaIng" },
-          { name: "POSsales", field: "fecha" },
-          // Add other collections here
-        ];
+        const syncOperations = async () => {
+          const collectionsToSync = [
+            { name: "POSsales", field: "fecha" },
+            // Add other collections here
+          ];
+          console.log("syncOperations");
+          for (const { name, field } of collectionsToSync) {
+            const docs = await dbOnline
+              .collection(name)
+              .find({ [field]: { $gte: lastSyncDate } })
+              .toArray();
+            await dbOffline
+              .collection(name)
+              .insertMany(docs, { ordered: false })
+              .catch((e) => console.error(e));
+          }
+          const colores = await dbOnline
+            .collection("Colores")
+            .find({ fechaIng: { $gte: lastSyncUnix } })
+            .toArray();
+          await dbOffline
+            .collection("Colores")
+            .insertMany(colores, { ordered: false })
+            .catch((e) => console.error(e));
+          // Special handling for 'transacciones'
+          const transacciones = await dbOnline
+            .collection("transacciones")
+            .find({
+              fecha: { $gte: lastSyncUnix },
+              capturista: "6415a35cef355a1fda342d8a",
+            })
+            .toArray();
+          await dbOffline
+            .collection("transacciones")
+            .insertMany(transacciones, { ordered: false })
+            .catch((e) => console.error(e));
 
-        const clonePromises = collectionsToSync.map(({ name, field }) =>
-          dbOffline.cloneCollection(onlineURI, name, {
-            [field]: { $gte: lastSyncDate },
-          })
-        );
+          // Handle collections without a date field
+          const collectionsWithoutDate = [
+            "conceptosGastos",
+            "cuentasBancarias",
+            "Inventario",
+            "Modelos",
+            "Clientes",
+          ];
+          for (const name of collectionsWithoutDate) {
+            const docs = await dbOnline.collection(name).find({}).toArray();
+            await dbOffline
+              .collection(name)
+              .insertMany(docs, { ordered: false })
+              .catch((e) => console.error(e));
+          }
 
-        // Add special handling for 'transacciones'
-        clonePromises.push(
-          dbOffline.cloneCollection(onlineURI, "transacciones", {
-            fecha: { $gte: lastSyncUnix },
-            capturista: "6415a35cef355a1fda342d8a",
-          })
-        );
-
-        // Handle collections without a date field
-        [
-          "conceptosGastos",
-          "cuentasBancarias",
-          "Inventario",
-          "Modelos",
-          "Clientes",
-        ].forEach((name) => {
-          clonePromises.push(dbOffline.cloneCollection(onlineURI, name));
-        });
-
-        // Update lastSync record
-        clonePromises.push(
-          dbOffline
+          // Update lastSync record
+          await dbOffline
             .collection("lastSync")
             .updateOne(
               { type: "Offline" },
               { $set: { fecha: new Date() } },
               { upsert: true }
-            )
-        );
+            );
+        };
 
-        await Promise.all(clonePromises.map((p) => p.catch((e) => e)));
+        await syncOperations();
 
         return {
           code: 200,
@@ -89,38 +108,62 @@ export const sync = {
           new Date(lastSyncDate).getTime() / 1000
         );
 
-        const clonePromises = [];
+        const syncOperations = async () => {
+          // Handle collections with a date field
+          const collectionsWithDate = [
+            { name: "POSsales", field: "fecha" },
+            {
+              name: "transacciones",
+              field: "fecha",
+              additionalCriteria: { capturista: "6415a35cef355a1fda342d8a" },
+            },
+            // Add other collections with date field here
+          ];
 
-        // Handle collections without a date field
-        ["cuentasBancarias", "Inventario", "Clientes"].forEach((name) => {
-          clonePromises.push(dbOnline.cloneCollection(offlineURI, name));
-        });
+          for (const {
+            name,
+            field,
+            additionalCriteria = {},
+          } of collectionsWithDate) {
+            const criteria = {
+              [field]: { $gte: lastSyncDate },
+              ...additionalCriteria,
+            };
+            const docs = await dbOffline
+              .collection(name)
+              .find(criteria)
+              .toArray();
+            await dbOnline
+              .collection(name)
+              .insertMany(docs, { ordered: false })
+              .catch((e) => console.error(e));
+          }
 
-        // Handle collections with a date field
-        clonePromises.push(
-          dbOnline.cloneCollection(offlineURI, "POSsales", {
-            fecha: { $gte: lastSyncDate },
-          })
-        );
-        clonePromises.push(
-          dbOnline.cloneCollection(offlineURI, "transacciones", {
-            fecha: { $gte: lastSyncUnix },
-            capturista: "6415a35cef355a1fda342d8a",
-          })
-        );
+          // Handle collections without a date field
+          const collectionsWithoutDate = [
+            "cuentasBancarias",
+            "Inventario",
+            "Clientes",
+          ];
+          for (const name of collectionsWithoutDate) {
+            const docs = await dbOffline.collection(name).find({}).toArray();
+            await dbOnline
+              .collection(name)
+              .insertMany(docs, { ordered: false })
+              .catch((e) => console.error(e));
+          }
 
-        // Update lastSync record
-        clonePromises.push(
-          dbOffline
+          // Update lastSync record
+          await dbOffline
             .collection("lastSync")
             .updateOne(
               { type: "Online" },
               { $set: { fecha: new Date() } },
               { upsert: true }
-            )
-        );
+            );
+        };
 
-        await Promise.all(clonePromises.map((p) => p.catch((e) => e)));
+        await syncOperations();
 
         return {
           code: 200,

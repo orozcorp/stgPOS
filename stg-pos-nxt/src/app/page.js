@@ -1,8 +1,10 @@
 "use client";
 import Link from "next/link";
 import CrearGasto from "./(components)/CrearGasto";
-import { Spinner } from "flowbite-react";
+import { Spinner, Alert } from "flowbite-react";
 import { postData } from "@/lib/helpers/getData";
+import { useOnlineStatus } from "@/components/Contexts/OnlineContext";
+import { useState } from "react";
 const MUTATION = `mutation SyncOffline {
   syncOffline{
     code
@@ -26,7 +28,7 @@ export default function Home() {
     } catch (error) {
       console.log(error);
       setLoading(false);
-      setError(error.message);
+      setError(error);
     }
   };
   const syncOnline = async () => {
@@ -39,7 +41,7 @@ export default function Home() {
     } catch (error) {
       console.log(error);
       setLoading(false);
-      setError(error.message);
+      setError(error);
     }
   };
   return (
@@ -68,11 +70,30 @@ export default function Home() {
           >
             <h2 className="text-xl font-bold">Crear Gasto</h2>
           </button>
-          <button onClick={() => (isOnline ? syncOffline() : syncOnline())}>
+          <button
+            onClick={() => (isOnline ? syncOffline() : syncOnline())}
+            disabled={loading}
+            className="bg-red-700 text-white p-4 rounded shadow-lg"
+          >
             <h2 className="text-xl font-bold">
-              Sincronizar {`${isOnline ? "con Offline" : "con Online"}`}
+              {loading ? (
+                <div className="flex flex-row flex-wrap gap-2">
+                  <Spinner />
+                  Sinconizando...
+                </div>
+              ) : (
+                `Sincronizar ${isOnline ? "con Offline" : "con Online"}`
+              )}
             </h2>
           </button>
+          {error && (
+            <Alert
+              className="w-full"
+              type="danger"
+              title="Error"
+              message={error}
+            />
+          )}
         </div>
       </main>
     </>
