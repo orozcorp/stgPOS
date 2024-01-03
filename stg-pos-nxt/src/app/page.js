@@ -5,6 +5,7 @@ import { Spinner, Alert } from "flowbite-react";
 import { postData } from "@/lib/helpers/getData";
 import { useOnlineStatus } from "@/components/Contexts/OnlineContext";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 const MUTATION = `mutation SyncOffline {
   syncOffline{
     code
@@ -13,10 +14,20 @@ const MUTATION = `mutation SyncOffline {
   }
 }
 `;
+const MUTATION_INSERT = `mutation PosSalesInsert($online: Boolean!) {
+    posSalesInsert(online: $online) {
+      code
+      data
+      success
+      message
+    }
+  }`;
 export default function Home() {
   const { crearGastoDisplay, setCrearGastoDisplay, setOnline, isOnline } =
     useOnlineStatus();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [loadingNota, setLoadingNota] = useState(false);
   const [error, setError] = useState("");
   const syncOffline = async () => {
     setLoading(true);
@@ -44,6 +55,22 @@ export default function Home() {
       setError(error);
     }
   };
+  const createNota = async () => {
+    setLoadingNota(true);
+    setError("");
+    try {
+      const data = await postData({
+        query: MUTATION_INSERT,
+        variables: { online: isOnline },
+      });
+      setLoadingNota(false);
+      router.push(`/Notas/${data.posSalesInsert.data}`);
+    } catch (error) {
+      console.log(error);
+      setLoadingNota(false);
+      setError(error);
+    }
+  };
   return (
     <>
       {crearGastoDisplay && (
@@ -55,8 +82,16 @@ export default function Home() {
       <main className="flex flex-col flex-nowrap min-h-screen p-8">
         <h1 className="text-4xl font-bold mt-4 mb-8">STERLING POS</h1>
         <div className="flex flex-row flex-wrap justify-start items-start gap-4">
-          <button className="bg-zinc-800 text-white p-4 rounded shadow-lg">
-            <h2 className="text-xl font-bold">Crear Nota</h2>
+          <button
+            disabled={loadingNota}
+            onClick={() => createNota()}
+            className="bg-zinc-800 text-white p-4 rounded shadow-lg"
+          >
+            {loadingNota ? (
+              <Spinner />
+            ) : (
+              <h2 className="text-xl font-bold">Crear Nota</h2>
+            )}
           </button>
           <Link
             href="/Notas"

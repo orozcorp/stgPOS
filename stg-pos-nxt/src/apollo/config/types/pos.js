@@ -151,38 +151,47 @@ export const pos = gql`
     tipoPago: String
   }
   type Mutation {
-    posSalesCancelNota(idNota: String!): GeneralResponse!
-    posSalesDevolucion(idNota: String!, products: [POSDevo]): GeneralResponse!
+    posSalesCancelNota(idNota: String!, online: Boolean!): GeneralResponse!
+    posSalesDevolucion(
+      idNota: String!
+      products: [POSDevo]
+      online: Boolean!
+    ): GeneralResponse!
     posSalesAddPago(
       instance: String!
+      online: Boolean!
       token: String!
       pagos: [POSPago]
       transaction: AddPagoPOSsalesTarjeta
     ): GeneralResponse!
-    posSalesInsert: GeneralResponseDataString!
+    posSalesInsert(online: Boolean!): GeneralResponseDataString!
     posSalesUpdateClient(
       token: String!
       instance: String!
       idNota: String!
       cliente: String!
       clienteName: String!
+      online: Boolean!
     ): GeneralResponse!
     posSalesUpdateVendedora(
       idNota: String!
       vendedora: String!
       vendedoraName: String!
+      online: Boolean!
     ): GeneralResponse!
     posSalesInsertModeloCodigo(
       idNota: String!
       code: String!
       cliente: String!
       cupon: Boolean
+      online: Boolean!
     ): GeneralResponse!
     posSalesInsertModeloBusqueda(
       idNota: String!
       input: InsertFromBusquedaPOS!
       cliente: String!
       cupon: Boolean
+      online: Boolean!
     ): GeneralResponse!
     posSalesUpdateSubtotals(
       idNota: String!
@@ -192,17 +201,20 @@ export const pos = gql`
       cliente: String!
       cupon: Boolean
       type: String!
+      online: Boolean!
     ): GeneralResponse!
     posSalesUpdateDescuento(
       idNota: String!
       idProduct: String!
       discountAsk: Float!
+      online: Boolean!
     ): GeneralResponse!
     posSalesUpdateRemoveProduct(
       idNota: String!
       idProduct: String!
       cliente: String!
       cupon: Boolean
+      online: Boolean!
     ): GeneralResponse!
     posSalesDiscount(
       idNota: String!
@@ -213,32 +225,37 @@ export const pos = gql`
       cantidad: Float!
       cupon: Boolean
       type: Boolean!
+      online: Boolean!
     ): GeneralResponse!
     posSalesUpdateCupon(
       idNota: String!
       cliente: String!
       cupon: Boolean!
+      online: Boolean!
     ): GeneralResponse!
     posSalesSetCredito(
       instance: String!
       token: String!
       idNota: String!
+      online: Boolean!
     ): GeneralResponse!
     posSalesInsertPaymentEfectivo(
       instance: String!
       token: String!
       input: AddPagoPOSsalesEfectivo!
       saldo: Float!
+      online: Boolean!
     ): GeneralResponse!
     posSalesInsertPaymentTarjeta(
       instance: String!
       token: String!
       input: AddPagoPOSsalesTarjeta!
       saldo: Float!
+      online: Boolean!
     ): GeneralResponse!
   }
   type Query {
-    posSalesCierreDelDia(fi: Date!, ff: Date!): CierreDia!
+    posSalesCierreDelDia(fi: Date!, ff: Date!, online: Boolean!): CierreDia!
     posHistorial(
       fechaInicio: Date!
       fechaFinal: Date!
@@ -246,10 +263,10 @@ export const pos = gql`
       cliente: String!
       online: Boolean!
     ): [POS]
-    posClientesDeuda: [ClienteDeuda!]
-    posDevolucionCliente(idCliente: String!): [POS]
-    posNota(idNota: String!): POS!
-    posModeloTelaSearch(modelo: String): [TelaPOSsearch]
-    posCambioDePrecio: [CambioPrecio]
+    posClientesDeuda(online: Boolean!): [ClienteDeuda!]
+    posDevolucionCliente(idCliente: String!, online: Boolean!): [POS]
+    posNota(idNota: String!, online: Boolean!): POS!
+    posModeloTelaSearch(modelo: String, online: Boolean!): [TelaPOSsearch]
+    posCambioDePrecio(online: Boolean!): [CambioPrecio]
   }
 `;

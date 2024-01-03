@@ -8,10 +8,15 @@ import {
   productosDescuentos,
   facturarNota,
 } from "../resolverAddFunctions/facturacionNotaFunction";
-
+import { checkValidPhones, enviarMensaje } from "@/apollo/Functions/Chats";
 export const pos = {
   Query: {
-    posSalesCierreDelDia: async (root, { fi, ff }, { db }) => {
+    posSalesCierreDelDia: async (
+      root,
+      { fi, ff, online },
+      { dbOnline, dbOffline }
+    ) => {
+      const db = online ? dbOnline : dbOffline;
       const fiU = moment(fi).unix();
       const ffU = moment(ff).unix();
       const totElabPromise = db
@@ -173,7 +178,8 @@ export const pos = {
         .toArray();
       return sales;
     },
-    posClientesDeuda: async (root, args, { db }) => {
+    posClientesDeuda: async (root, { online }, { dbOnline, dbOffline }) => {
+      const db = online ? dbOnline : dbOffline;
       const posAgg = await db
         .collection("POSsales")
         .aggregate([
@@ -211,7 +217,12 @@ export const pos = {
         .toArray();
       return posAgg;
     },
-    posDevolucionCliente: async (root, { idCliente }, { db }) => {
+    posDevolucionCliente: async (
+      root,
+      { idCliente, online },
+      { dbOnline, dbOffline }
+    ) => {
+      const db = online ? dbOnline : dbOffline;
       return await db
         .collection("POSsales")
         .find({
@@ -221,7 +232,8 @@ export const pos = {
         })
         .toArray();
     },
-    posNota: async (root, { idNota }, { db }) => {
+    posNota: async (root, { idNota, online }, { dbOnline, dbOffline }) => {
+      const db = online ? dbOnline : dbOffline;
       const result = await db.collection("POSsales").findOne({ _id: idNota });
       if (result && result.products) {
         result.products.sort(
@@ -230,7 +242,12 @@ export const pos = {
       }
       return result;
     },
-    posModeloTelaSearch: async (root, { modelo }, { db }) => {
+    posModeloTelaSearch: async (
+      root,
+      { modelo, online },
+      { dbOnline, dbOffline }
+    ) => {
+      const db = online ? dbOnline : dbOffline;
       const allTelas = await db
         .collection("ModeloCorte2020")
         .aggregate([
@@ -266,7 +283,8 @@ export const pos = {
         .toArray();
       return allTelas;
     },
-    posCambioDePrecio: async (root, args, { db }) => {
+    posCambioDePrecio: async (root, { online }, { dbOnline, dbOffline }) => {
+      const db = online ? dbOnline : dbOffline;
       const cambiosDePrecios = await db
         .collection("POSsales")
         .aggregate([
@@ -301,7 +319,12 @@ export const pos = {
     },
   },
   Mutation: {
-    posSalesCancelNota: async (root, { idNota }, { db }) => {
+    posSalesCancelNota: async (
+      root,
+      { idNota, online },
+      { dbOnline, dbOffline }
+    ) => {
+      const db = online ? dbOnline : dbOffline;
       try {
         const tran = await db
           .collection("transaccion")
@@ -368,7 +391,12 @@ export const pos = {
         };
       }
     },
-    posSalesDevolucion: async (root, { idNota, products }, { db }) => {
+    posSalesDevolucion: async (
+      root,
+      { idNota, products, online },
+      { dbOnline, dbOffline }
+    ) => {
+      const db = online ? dbOnline : dbOffline;
       try {
         const total = sumBy(products, "subtotal") * -1;
         const posSalesUpdates = [];
@@ -426,9 +454,10 @@ export const pos = {
     },
     posSalesAddPago: async (
       root,
-      { token, instance, pagos, transaction },
-      { db }
+      { token, instance, pagos, transaction, online },
+      { dbOnline, dbOffline }
     ) => {
+      const db = online ? dbOnline : dbOffline;
       try {
         for (const val of pagos) {
           if (val?.moved) {
@@ -546,7 +575,12 @@ export const pos = {
         };
       }
     },
-    posSalesUpdateCupon: async (root, { idNota, cliente, cupon }, { db }) => {
+    posSalesUpdateCupon: async (
+      root,
+      { idNota, cliente, cupon, online },
+      { dbOnline, dbOffline }
+    ) => {
+      const db = online ? dbOnline : dbOffline;
       try {
         const updated = await db
           .collection("POSsales")
@@ -569,7 +603,8 @@ export const pos = {
         };
       }
     },
-    posSalesInsert: async (root, args, { db }) => {
+    posSalesInsert: async (root, { online }, { dbOnline, dbOffline }) => {
+      const db = online ? dbOnline : dbOffline;
       const numb = await db
         .collection("POSsales")
         .find({}, { fields: { numNota: 1 }, sort: { numNota: -1 }, limit: 1 })
@@ -615,11 +650,15 @@ export const pos = {
     },
     posSalesUpdateClient: async (
       root,
-      { instance, token, idNota, cliente, clienteName },
-      { db }
+      { instance, token, idNota, cliente, clienteName, online },
+      { dbOnline, dbOffline }
     ) => {
+      const db = online ? dbOnline : dbOffline;
       try {
-        const hasValid = await checkValidPhones(cliente, db, instance, token);
+        let hasValid = true;
+        if (online) {
+          hasValid = await checkValidPhones(cliente, db, instance, token);
+        }
         const update = await db.collection("POSsales").updateOne(
           { _id: idNota },
           {
@@ -647,9 +686,10 @@ export const pos = {
     },
     posSalesUpdateVendedora: async (
       root,
-      { idNota, vendedora, vendedoraName },
-      { db }
+      { idNota, vendedora, vendedoraName, online },
+      { dbOnline, dbOffline }
     ) => {
+      const db = online ? dbOnline : dbOffline;
       try {
         const update = await db.collection("POSsales").updateOne(
           { _id: idNota },
@@ -676,9 +716,10 @@ export const pos = {
     },
     posSalesInsertModeloCodigo: async (
       root,
-      { idNota, code, cliente, cupon },
-      { db }
+      { idNota, code, cliente, cupon, online },
+      { dbOnline, dbOffline }
     ) => {
+      const db = online ? dbOnline : dbOffline;
       const codigo = code.split(" I ");
       const mod = await db.collection("Modelos").findOne(
         { alu: Number(codigo[0]) },
@@ -840,9 +881,10 @@ export const pos = {
     },
     posSalesInsertModeloBusqueda: async (
       root,
-      { idNota, input, cliente, cupon },
-      { db }
+      { idNota, input, cliente, cupon, online },
+      { dbOnline, dbOffline }
     ) => {
+      const db = online ? dbOnline : dbOffline;
       const mod = await db.collection("Modelos").findOne(
         { alu: Number(input.alu) },
         {
@@ -950,9 +992,10 @@ export const pos = {
     },
     posSalesUpdateSubtotals: async (
       root,
-      { idNota, idProduct, cantidad, precio, cliente, cupon, type },
-      { db }
+      { idNota, idProduct, cantidad, precio, cliente, cupon, type, online },
+      { dbOnline, dbOffline }
     ) => {
+      const db = online ? dbOnline : dbOffline;
       try {
         const update = await db.collection("POSsales").updateOne(
           { _id: idNota, products: { $elemMatch: { _id: idProduct } } },
@@ -983,9 +1026,10 @@ export const pos = {
     },
     posSalesUpdateDescuento: async (
       root,
-      { idNota, idProduct, discountAsk },
-      { db }
+      { idNota, idProduct, discountAsk, online },
+      { dbOnline, dbOffline }
     ) => {
+      const db = online ? dbOnline : dbOffline;
       try {
         const update = await db.collection("POSsales").updateOne(
           { _id: idNota, products: { $elemMatch: { _id: idProduct } } },
@@ -1013,9 +1057,10 @@ export const pos = {
     },
     posSalesUpdateRemoveProduct: async (
       root,
-      { idNota, idProduct, cliente, cupon },
-      { db }
+      { idNota, idProduct, cliente, cupon, online },
+      { dbOnline, dbOffline }
     ) => {
+      const db = online ? dbOnline : dbOffline;
       try {
         const update = await db.collection("POSsales").updateOne(
           { _id: idNota },
@@ -1054,9 +1099,11 @@ export const pos = {
         cliente,
         cupon,
         type,
+        online,
       },
-      { db }
+      { dbOnline, dbOffline }
     ) => {
+      const db = online ? dbOnline : dbOffline;
       try {
         const update = await db.collection("POSsales").updateOne(
           { _id: idNota, products: { $elemMatch: { _id: idProduct } } },
@@ -1090,7 +1137,12 @@ export const pos = {
         };
       }
     },
-    posSalesSetCredito: async (root, { token, instance, idNota }, { db }) => {
+    posSalesSetCredito: async (
+      root,
+      { token, instance, idNota, online },
+      { dbOnline, dbOffline }
+    ) => {
+      const db = online ? dbOnline : dbOffline;
       try {
         const updateCredit = db
           .collection("POSsales")
@@ -1214,9 +1266,10 @@ export const pos = {
     },
     posSalesInsertPaymentEfectivo: async (
       root,
-      { token, instance, input, saldo },
-      { db }
+      { token, instance, input, saldo, online },
+      { dbOnline, dbOffline }
     ) => {
+      const db = online ? dbOnline : dbOffline;
       const obj = {
         _id: uuidv4(),
         fecha: moment().unix(),
@@ -1378,9 +1431,10 @@ export const pos = {
     },
     posSalesInsertPaymentTarjeta: async (
       root,
-      { token, instance, input, saldo },
-      { db }
+      { token, instance, input, saldo, online },
+      { dbOnline, dbOffline }
     ) => {
+      const db = online ? dbOnline : dbOffline;
       const obj = {
         _id: uuidv4(),
         fecha: moment().unix(),

@@ -26,7 +26,7 @@ export default function MainNavbar() {
           POS {!isOnline && "Offline"}
         </span>
       </NavbarBrand>
-      <NavbarToggle />
+      <NavbarToggle className={`text-white`} />
       <NavbarCollapse>
         <NavbarLink href="/" className="text-white text-xl">
           Inicio
