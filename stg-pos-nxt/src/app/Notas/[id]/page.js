@@ -74,7 +74,6 @@ export default function NotaSingle() {
     const getInfo = async () => {
       setError("");
       try {
-        console.log("id", id);
         const data = await getData({
           query: QUERY,
           variables: { idNota: id, online: isOnline },

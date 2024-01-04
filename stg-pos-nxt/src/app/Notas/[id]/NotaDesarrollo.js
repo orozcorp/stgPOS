@@ -4,6 +4,10 @@ import { postData } from "@/lib/helpers/getData";
 import { useOnlineStatus } from "@/components/Contexts/OnlineContext";
 import { dateInputLocalFormat } from "@/lib/helpers/formatters";
 import ClienteSection from "./ClienteSection";
+import SearchableSelect from "@/components/atoms/SearchableSelect";
+import AddCodigo from "./AddCodigo";
+import Totales from "./Totales";
+import ProductTable from "./ProductTable";
 const MUTATION_VENDEDORA = `  mutation PosSalesUpdateVendedora(
     $idNota: String!
     $vendedora: String!
@@ -56,18 +60,47 @@ export default function NotaDesarrollo({
       setLoading(false);
     }
   };
+  console.log("nota", nota);
   return (
     <>
       <h1 className="text-xl font-bold">#{nota?.numNota}</h1>
       <h2 className="text-lg font-bold">{dateInputLocalFormat(nota?.fecha)}</h2>
-      <div className="flex flex-row flex-wrap gap-2 justify-between my-4 items-center w-full">
+      <div className="flex flex-row flex-wrap gap-2 justify-between my-4 items-start w-full">
         <ClienteSection
           numNota={numNota}
           clienteName={nota?.clienteName}
           cliente={nota?.cliente}
           setRefetch={setRefetch}
         />
+        <SearchableSelect
+          label="Vendedora"
+          options={empleados}
+          value={vendedora}
+          onChange={(e) => {
+            setVendedora(e);
+          }}
+          onBlur={updateVendedora}
+        />
       </div>
+      <div className="flex flex-row flex-wrap justify-between items-center gap-4 my-2 w-full">
+        <AddCodigo
+          numNota={numNota}
+          setRefetch={setRefetch}
+          cliente={nota?.cliente}
+        />
+        <Totales
+          total={nota?.total}
+          saldo={nota?.saldo}
+          piezas={nota?.totalPiezas}
+        />
+      </div>
+      <ProductTable
+        numNota={numNota}
+        products={nota?.productos}
+        setRefetch={setRefetch}
+        cliente={nota?.cliente}
+        cupon={nota?.cupon}
+      />
     </>
   );
 }

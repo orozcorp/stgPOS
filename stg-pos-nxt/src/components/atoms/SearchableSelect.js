@@ -19,12 +19,12 @@ const SearchableSelect = ({ options = [], value, onChange, label }) => {
   };
 
   return (
-    <div className="flex-1">
-      <div className="relative">
+    <div className="flex-1 min-w-60">
+      <div className="relative rounded-lg">
         <label className="block text-sm font-medium text-gray-700">
           {label}
         </label>
-        <div className="flex flex-row flex-wrap justify-start items-center bg-gray-50 border-b-2">
+        <div className="flex flex-row flex-wrap justify-start items-center bg-gray-50 border-1 rounded-lg ">
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}

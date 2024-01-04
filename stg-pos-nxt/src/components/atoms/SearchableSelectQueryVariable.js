@@ -92,21 +92,25 @@ const SearchableSelectQueryVariable = ({
 
   return (
     <div className="flex-1">
-      <label className="block text-sm font-medium text-gray-700">{title}</label>
-      <div className="flex flex-row flex-wrap justify-start items-center">
-        <input
-          value={search}
-          onChange={handleInputChange}
-          onClick={() => setIsOpen(true)}
-          className="my-2 flex-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block  p-2.5"
-        />
-        <span>
-          <AiOutlineDelete
-            style={{ width: "30px", height: "30px" }}
-            className="my-icon"
-            onClick={() => setSearch("")}
+      <div className="relative rounded-lg">
+        <label className="block text-sm font-medium text-gray-700">
+          {title}
+        </label>
+        <div className="flex flex-row flex-wrap justify-start items-center bg-gray-50 border-1 rounded-lg ">
+          <input
+            value={search}
+            onChange={handleInputChange}
+            onClick={() => setIsOpen(true)}
+            className="my-2 flex-1 bg-gray-50  text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block  p-2.5"
           />
-        </span>
+          <span>
+            <AiOutlineDelete
+              style={{ width: "30px", height: "30px" }}
+              className="my-icon"
+              onClick={() => setSearch("")}
+            />
+          </span>
+        </div>
       </div>
       {isOpen && (
         <div style={{ maxHeight: "200px", overflowY: "scroll" }} py={1}>

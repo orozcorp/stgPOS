@@ -5,6 +5,7 @@ import { transaccion } from "./types/transaccion";
 import { sync } from "./types/sync";
 import { users } from "./types/users";
 import { clientes } from "./types/clientes";
+import { modelos } from "./types/modelos";
 
 const schema = mergeTypeDefs([
   pos,
@@ -13,6 +14,7 @@ const schema = mergeTypeDefs([
   sync,
   users,
   clientes,
+  modelos,
 ]);
 
 export default schema;

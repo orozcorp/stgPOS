@@ -29,6 +29,16 @@ export const sync = {
             .collection("Colores")
             .insertMany(colores, { ordered: false })
             .catch((e) => console.error(e));
+          const modeloCorte = await dbOnline
+            .collection("ModeloCorte2020")
+            .find({
+              fechaCorte: { $gte: lastSyncUnix },
+            })
+            .toArray();
+          const modeloCorteInserted = await dbOffline
+            .collection("ModeloCorte2020")
+            .insertMany(modeloCorte, { ordered: false })
+            .catch((e) => console.error(e));
           const transacciones = await dbOnline
             .collection("transaccion")
             .find({

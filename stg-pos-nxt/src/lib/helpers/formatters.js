@@ -26,6 +26,15 @@ export function format_qty(value) {
   return new Intl.NumberFormat("en-US").format(value);
 }
 
+export function format_qtyNoDec(value) {
+  if (typeof value !== "number") {
+    return "0";
+  }
+  return new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
 export function format_dateMed(value) {
   return formatDate(value, {
     weekday: "short",
