@@ -1,4 +1,7 @@
 "use client";
+
+import ProductTableRow from "./ProductTableRow";
+
 export default function ProductTable({
   numNota,
   products,
@@ -17,11 +20,22 @@ export default function ProductTable({
             <th className="px-4 py-1.5">Cantidad</th>
             <th className="px-4 py-1.5">Precio</th>
             <th className="px-4 py-1.5">Subtotal</th>
-            <th className="px-4 py-1.5">Liquidacion</th>
+            <th className="px-4 py-1.5">Liq</th>
             <th className="px-4 py-1.5">Borrar</th>
           </tr>
         </thead>
-        <tbody></tbody>
+        <tbody>
+          {products?.map((product) => (
+            <ProductTableRow
+              key={product?._id}
+              product={product}
+              numNota={numNota}
+              cliente={cliente}
+              cupon={cupon}
+              setRefetch={setRefetch}
+            />
+          ))}
+        </tbody>
       </table>
     </div>
   );

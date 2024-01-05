@@ -3,8 +3,9 @@ import { format_money } from "@/lib/helpers/formatters";
 import { useTiendaData } from "@/components/Contexts/TiendaContext";
 import { useOnlineStatus } from "@/components/Contexts/OnlineContext";
 import { postData } from "@/lib/helpers/getData";
-import { Spinner, Button, Alert } from "flowbite-react";
+import { Spinner, Button, Alert, Badge } from "flowbite-react";
 import { useEffect, useState } from "react";
+import InputSimple from "@/components/atoms/InputSimple";
 const MUTATION = ` mutation PosSalesUpdateSubtotals(
     $idNota: String!
     $idProduct: String!
@@ -60,6 +61,7 @@ export default function ProductTableRow({
 }) {
   const { lt } = useTiendaData();
   const { setLoadingTienda } = lt;
+  const { isOnline } = useOnlineStatus();
   const [precio, setPrecio] = useState(product.precio);
   const [cantidad, setCantidad] = useState(product.cantidad);
   useEffect(() => {
@@ -76,12 +78,13 @@ export default function ProductTableRow({
         query: MUTATION,
         variables: {
           idNota: numNota,
-          idProduct: product.idProduct,
+          idProduct: product._id,
           cantidad: Number(cantidad),
           precio: Number(precio),
           cliente,
           cupon,
           type,
+          online: isOnline,
         },
       });
       setRefetch(true);
@@ -118,5 +121,72 @@ export default function ProductTableRow({
       setLoadingTienda(false);
     }
   };
-  return <tr></tr>;
+  return (
+    <>
+      <tr className="bg-white text-zinc-800 border-b text-center">
+        <td className="px-4 py-1.5">
+          <div className="flex flex-col flex-nowrap items-center justify-center">
+            <b className="mr-2 text-sm">{product.mod}</b>
+            <div className="text-xs/[12px]">{product.modDesc}</div>
+          </div>
+        </td>
+        <td>
+          <b>{product.talla}</b>
+        </td>
+        <td>
+          <div className="text-xs flex flex-col flex-nowrap items-center justify-center">
+            <b className="mr-2 text-sm">{product.colorDesc}</b>
+            <div>{product.colorTelaName}</div>
+          </div>
+        </td>
+        <td className="px-4 py-1.5 min-w-48">
+          <InputSimple
+            id="cantidad"
+            label="Cantidad"
+            type="number"
+            value={cantidad}
+            disabled={loading}
+            onChange={(e) => setCantidad(e.target.value)}
+            onBlur={() => updateTotals({ type: "cantidad" })}
+          />
+        </td>
+        <td className="px-4 py-1.5 min-w-48">
+          <InputSimple
+            id="precio"
+            label="Precio"
+            type="number"
+            value={precio}
+            disabled={loading}
+            onChange={(e) => setPrecio(e.target.value)}
+            onBlur={() => updateTotals({ type: "price" })}
+          />
+        </td>
+        <td>{format_money(precio * cantidad)}</td>
+        <td>
+          <div className="flex flex-col flex-nowrap items-center justify-center">
+            <Badge color="failure">{product?.liquidacion ? "Si" : "No"}</Badge>
+          </div>
+        </td>
+        <td>
+          <div className="flex flex-col flex-nowrap items-center justify-center">
+            <Button
+              disabled={loadingRemove}
+              color="failure"
+              size="xs"
+              onClick={remove}
+            >
+              Borrar
+            </Button>
+          </div>
+        </td>
+      </tr>
+      {error && (
+        <tr>
+          <td colSpan="8">
+            <Alert color="failure">{error}</Alert>
+          </td>
+        </tr>
+      )}
+    </>
+  );
 }

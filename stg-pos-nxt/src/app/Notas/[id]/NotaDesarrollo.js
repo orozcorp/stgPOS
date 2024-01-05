@@ -60,7 +60,6 @@ export default function NotaDesarrollo({
       setLoading(false);
     }
   };
-  console.log("nota", nota);
   return (
     <>
       <h1 className="text-xl font-bold">#{nota?.numNota}</h1>
@@ -96,11 +95,18 @@ export default function NotaDesarrollo({
       </div>
       <ProductTable
         numNota={numNota}
-        products={nota?.productos}
+        products={nota?.products}
         setRefetch={setRefetch}
         cliente={nota?.cliente}
         cupon={nota?.cupon}
       />
+      <div className="flex flex-row flex-wrap justify-between items-center gap-4 my-2 w-full">
+        <Totales
+          total={nota?.total}
+          saldo={nota?.saldo}
+          piezas={nota?.totalPiezas}
+        />
+      </div>
     </>
   );
 }
