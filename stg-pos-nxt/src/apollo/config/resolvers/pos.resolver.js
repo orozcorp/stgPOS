@@ -364,7 +364,7 @@ export const pos = {
               },
             },
           }));
-          await db.collection("Inventory").bulkWrite(inventoryUpdates);
+          await db.collection("Inventario").bulkWrite(inventoryUpdates);
         }
         const updatePOS = await db.collection("POSsales").updateOne(
           { _id: idNota },

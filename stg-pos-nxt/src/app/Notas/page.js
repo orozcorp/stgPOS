@@ -187,7 +187,7 @@ export default function Notas() {
                     {format_money(nota.saldo)}
                   </Table.Cell>
                   <Table.Cell className={getCellClassName(nota.estatus)}>
-                    <Link href={`/Notas/${nota._id}`}>
+                    <Link href={`/Notas/${nota._id}`} target="_blank">
                       <FaEye />
                     </Link>
                   </Table.Cell>

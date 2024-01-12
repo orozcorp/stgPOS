@@ -14,6 +14,9 @@ function ensureDataDirectoryExists() {
   }
 }
 
+let mongoProcess; // Declare mongoProcess at a higher scope
+let client; // Declare MongoClient at a higher scope
+
 async function createWindow() {
   try {
     ensureDataDirectoryExists();
@@ -36,19 +39,25 @@ async function createWindow() {
     }
 
     // Start MongoDB with the specified data directory
-    const mongoProcess = spawn("mongod", ["--dbpath", mongoDataDirectory]);
+    mongoProcess = spawn("mongod", ["--dbpath", mongoDataDirectory]);
+
+    mongoProcess.stdout.on("data", (data) => {
+      console.log(`MongoDB stdout: ${data}`);
+    });
+
+    mongoProcess.stderr.on("data", (data) => {
+      console.error(`MongoDB stderr: ${data}`);
+    });
 
     mongoProcess.on("close", (code) => {
       console.log(`MongoDB process exited with code ${code}`);
     });
 
-    // Connect to MongoDB
-    const client = new MongoClient("mongodb://127.0.0.1:27017");
-
-    await client.connect();
-    console.log("Connected to MongoDB!");
-
-    // Do more MongoDB operations as needed
+    // Attempt to connect to MongoDB
+    client = new MongoClient("mongodb://127.0.0.1:27017", {
+      serverSelectionTimeoutMS: 5000,
+    });
+    await connectWithRetry(client);
 
     // Close the MongoDB connection when the app is closed
     app.on("before-quit", async () => {
@@ -62,7 +71,28 @@ async function createWindow() {
       console.log("MongoDB process killed.");
     });
   } catch (error) {
-    console.error("Failed to connect to MongoDB:", error);
+    console.error("Failed to create window:", error);
+  }
+}
+
+async function connectWithRetry(client, maxRetries = 5) {
+  let retries = 0;
+  while (retries < maxRetries) {
+    try {
+      console.log(
+        `Attempting to connect to MongoDB, try ${retries + 1}/${maxRetries}`
+      );
+      await client.connect();
+      console.log("Connected to MongoDB!");
+      break;
+    } catch (error) {
+      console.error(`Retry ${retries + 1}/${maxRetries} failed:`, error);
+      retries++;
+      await new Promise((resolve) => setTimeout(resolve, 5000)); // wait for 5 seconds before retrying
+    }
+  }
+  if (retries === maxRetries) {
+    console.error("Failed to connect to MongoDB after maximum retries.");
   }
 }
 

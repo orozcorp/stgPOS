@@ -1,3 +1,4 @@
 node_modules
 .env.local
 stg-pos-nxt/.env.local
+mongodb/*

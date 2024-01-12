@@ -7,10 +7,6 @@ import { Checkbox, Label, Alert, Button } from "flowbite-react";
 import SearchableSelect from "@/components/atoms/SearchableSelect";
 import { useParams } from "next/navigation";
 import InputSimple from "@/components/atoms/InputSimple";
-const TarjetaOptions = [
-  { value: "Tarjeta de credito", label: "Credito" },
-  { value: "Tarjeta de debito", label: "Debito" },
-];
 const token = process.env.NEXT_PUBLIC_WA_TOKEN_ID;
 const instance = process.env.NEXT_PUBLIC_WA_INSTANCE_ID;
 const MUTATION = ` mutation PosSalesInsertPaymentTarjeta(
@@ -31,8 +27,10 @@ const MUTATION = ` mutation PosSalesInsertPaymentTarjeta(
       message
       success
     }
-  }`;
-export default function PagoTarjetaCredito({
+  }
+`;
+
+export default function PagoTransferencia({
   setRefetch,
   saldo,
   cliente,
@@ -48,16 +46,11 @@ export default function PagoTarjetaCredito({
   const [cargando, setCargando] = useState(false);
   const [factura, setFactura] = useState(false);
   const { id } = useParams();
-  const [tarjetaCredito, setTarjetaCredito] = useState({
-    value: "Tarjeta de credito",
-    label: "Credito",
-  });
   const [cuenta, setCuenta] = useState({
     value: "b1",
     label: "INBURSA LALITO INBURSA",
   });
   const [pago, setPago] = useState(0);
-  const [ult4, setUlt4] = useState("");
   const addPago = async (e) => {
     e.preventDefault();
     setLoadingTienda(true);
@@ -76,12 +69,11 @@ export default function PagoTarjetaCredito({
             capturista: "6415a35cef355a1fda342d8a",
             cliente,
             clpv: id,
-            tipoPago: tarjetaCredito.value,
+            tipoPago: "Transferencia",
             numNota: Number(numNota),
             cuenta: cuenta.value,
             cuentaName: cuenta.label,
             factura,
-            ult4,
           },
         },
       });
@@ -102,7 +94,7 @@ export default function PagoTarjetaCredito({
       onSubmit={addPago}
       className="border-2 p-4 rounded border-zinc-900 shadow-lg flex flex-col flex-nowrap justify-center items-center gap-4 w-72"
     >
-      <h2 className="text-lg font-bold">Tarjeta</h2>
+      <h2 className="text-lg font-bold">Transferencia</h2>
       <InputSimple
         id="aPagar"
         label="A pagar"
@@ -117,43 +109,22 @@ export default function PagoTarjetaCredito({
           setCambio(Number(number - saldo));
         }}
       />
-      <SearchableSelect
-        options={TarjetaOptions}
-        value={tarjetaCredito}
-        label="Tipo de tarjeta"
-        onChange={(e) => setTarjetaCredito(e)}
-      />
+      <div className="flex flex-col flex-nowrap justify-center items-center gap-2">
+        <Checkbox
+          id="factura"
+          checked={factura}
+          onChange={(e) => setFactura(e.currentTarget.checked)}
+        />
+        <Label htmlFor="factura" className="flex">
+          Factura
+        </Label>
+      </div>
       <SearchableSelect
         options={cuentas}
         value={cuenta}
         label="Cuenta"
         onChange={(e) => setCuenta(e)}
       />
-      <div className="flex flex-row flex-wrap w-full justify-between">
-        <InputSimple
-          id="ult4"
-          label="Últimos 4 dígitos"
-          type="number"
-          required
-          value={pago}
-          min="0"
-          step="1"
-          onChange={(e) => {
-            const number = e.currentTarget.value;
-            setUlt4(number);
-          }}
-        />
-        <div className="flex flex-col flex-nowrap justify-center items-center gap-2">
-          <Checkbox
-            id="factura"
-            checked={factura}
-            onChange={(e) => setFactura(e.currentTarget.checked)}
-          />
-          <Label htmlFor="factura" className="flex">
-            Factura
-          </Label>
-        </div>
-      </div>
       <Button color="dark" type="submit" disabled={cargando} className="w-full">
         {cargando || loadingTienda ? "Guardando" : "Pagar"}
       </Button>
