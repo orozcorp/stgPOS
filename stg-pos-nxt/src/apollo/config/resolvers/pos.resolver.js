@@ -1373,13 +1373,15 @@ export const pos = {
 
                 Saludos,
                 Sterling`;
-            const mensajeEnviado = enviarMensaje({
-              db,
-              clientId: POSsale.cliente,
-              body,
-              instance,
-              token,
-            });
+            if (online) {
+              const mensajeEnviado = enviarMensaje({
+                db,
+                clientId: POSsale.cliente,
+                body,
+                instance,
+                token,
+              });
+            }
           }
         } else {
           updateOperations.push(
@@ -1538,13 +1540,15 @@ export const pos = {
 
                 Saludos,
                 Sterling`;
-            const mensajeEnviado = enviarMensaje({
-              db,
-              clientId: POSsale.cliente,
-              body,
-              instance,
-              token,
-            });
+            if (online) {
+              const mensajeEnviado = enviarMensaje({
+                db,
+                clientId: POSsale.cliente,
+                body,
+                instance,
+                token,
+              });
+            }
           }
         } else {
           updateOperations.push(
@@ -1561,7 +1565,13 @@ export const pos = {
           );
         }
         if (!input.factura) {
-          await facturarNota({ input, db });
+          if (online) {
+            await facturarNota({ input, db });
+          } else {
+            await db
+              .collection("POSsales")
+              .updateOne({ _id: input.clpv }, { $set: { facturar: true } });
+          }
         }
         await Promise.all(updateOperations);
 

@@ -8,7 +8,7 @@ export default function InputSimple({
   ...props
 }) {
   return (
-    <div className="flex-1 relative ">
+    <div className="flex-1 relative min-w-40 ">
       <input
         type={type}
         id={id}

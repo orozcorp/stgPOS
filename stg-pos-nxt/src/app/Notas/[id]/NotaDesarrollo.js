@@ -8,6 +8,7 @@ import SearchableSelect from "@/components/atoms/SearchableSelect";
 import AddCodigo from "./AddCodigo";
 import Totales from "./Totales";
 import ProductTable from "./ProductTable";
+import Pagos from "./Pagos";
 const MUTATION_VENDEDORA = `  mutation PosSalesUpdateVendedora(
     $idNota: String!
     $vendedora: String!
@@ -62,8 +63,19 @@ export default function NotaDesarrollo({
   };
   return (
     <>
-      <h1 className="text-xl font-bold">#{nota?.numNota}</h1>
-      <h2 className="text-lg font-bold">{dateInputLocalFormat(nota?.fecha)}</h2>
+      <div className="flex flex-row flex-wrap justify-between items-center gap-4 my-2 w-full">
+        <div>
+          <h1 className="text-xl font-bold">#{nota?.numNota}</h1>
+          <h2 className="text-lg font-bold">
+            {dateInputLocalFormat(nota?.fecha)}
+          </h2>
+        </div>
+        <Totales
+          total={nota?.total}
+          saldo={nota?.saldo}
+          piezas={nota?.totalPiezas}
+        />
+      </div>
       <div className="flex flex-row flex-wrap gap-2 justify-between my-4 items-start w-full">
         <ClienteSection
           numNota={numNota}
@@ -87,11 +99,6 @@ export default function NotaDesarrollo({
           setRefetch={setRefetch}
           cliente={nota?.cliente}
         />
-        <Totales
-          total={nota?.total}
-          saldo={nota?.saldo}
-          piezas={nota?.totalPiezas}
-        />
       </div>
       <ProductTable
         numNota={numNota}
@@ -100,13 +107,19 @@ export default function NotaDesarrollo({
         cliente={nota?.cliente}
         cupon={nota?.cupon}
       />
-      <div className="flex flex-row flex-wrap justify-between items-center gap-4 my-2 w-full">
-        <Totales
-          total={nota?.total}
-          saldo={nota?.saldo}
-          piezas={nota?.totalPiezas}
-        />
-      </div>
+      <Totales
+        total={nota?.total}
+        saldo={nota?.saldo}
+        piezas={nota?.totalPiezas}
+      />
+      <Pagos
+        cuentas={cuentas}
+        setRefetch={setRefetch}
+        saldo={nota?.saldo}
+        cliente={nota?.cliente}
+        numNota={numNota}
+        cuentasTransfer={cuentasTransfer}
+      />
     </>
   );
 }
