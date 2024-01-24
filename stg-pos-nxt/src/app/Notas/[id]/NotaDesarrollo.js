@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { postData } from "@/lib/helpers/getData";
 import { useOnlineStatus } from "@/components/Contexts/OnlineContext";
+import { useParams } from "next/navigation";
 import { dateInputLocalFormat } from "@/lib/helpers/formatters";
 import ClienteSection from "./ClienteSection";
 import SearchableSelect from "@/components/atoms/SearchableSelect";
@@ -38,6 +39,7 @@ export default function NotaDesarrollo({
     value: nota?.vendedora,
     label: nota?.vendedoraName,
   });
+  const { id } = useParams();
   const { isOnline } = useOnlineStatus();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -95,7 +97,7 @@ export default function NotaDesarrollo({
       </div>
       <div className="flex flex-row flex-wrap justify-between items-center gap-4 my-2 w-full">
         <AddCodigo
-          numNota={numNota}
+          numNota={id}
           setRefetch={setRefetch}
           cliente={nota?.cliente}
         />

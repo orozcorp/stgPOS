@@ -116,7 +116,7 @@ export default function NotaSingle() {
       {{
         "En elaboracion": () => (
           <NotaDesarrollo
-            numNota={id}
+            numNota={nota?.numNota}
             setRefetch={setRefetch}
             nota={nota}
             cuentas={cuentas}

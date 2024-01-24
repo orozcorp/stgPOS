@@ -1,10 +1,12 @@
 import { ApolloServer } from "@apollo/server";
 import { expressMiddleware } from "@apollo/server/express4";
 import express from "express";
-import schema from "../stg-pos-nxt/src/apollo/config/schema";
-import resolvers from "../stg-pos-nxt/src/apollo/config/resolvers";
-import { context } from "../stg-pos-nxt/src/apollo/config/context";
+import schema from "../stg-pos-nxt/src/apollo/config/schema.js";
+import resolvers from "../stg-pos-nxt/src/apollo/config/resolvers.js";
+import { context } from "../stg-pos-nxt/src/apollo/config/context.js";
+
 const typeDefs = schema;
+
 async function startServer() {
   const app = express();
 
@@ -15,14 +17,14 @@ async function startServer() {
     csrfPrevention: true,
     cache: "bounded",
   });
-  await server.start();
 
+  await server.start();
   app.use("/api/graphql", expressMiddleware(server));
 
-  app.listen(3000, () =>
+  app.listen(3000, () => {
     console.log("Starting server...");
-    console.log(`🚀 Server ready at http://localhost:3000/api/graphql`)
-  );
+    console.log(`🚀 Server ready at http://localhost:3000/api/graphql`);
+  });
 }
 
-startServer();
+export { startServer };
